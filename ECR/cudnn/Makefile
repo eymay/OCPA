@@ -277,7 +277,7 @@ endif
 # Target rules
 all: build
 
-build: cudnn
+build: cudnn.cubin
 
 check.deps:
 ifeq ($(SAMPLE_ENABLED),0)
@@ -289,7 +289,7 @@ endif
 cudnn.o:cudnn.cu
 	$(EXEC) $(NVCC) $(INCLUDES) $(ALL_CCFLAGS) $(GENCODE_FLAGS) -o $@ -c $<
 
-cudnn: cudnn.o
+cudnn.cubin: cudnn.o
 	$(EXEC) $(NVCC) $(ALL_LDFLAGS) $(GENCODE_FLAGS) -o $@ $+ $(LIBRARIES)
 	$(EXEC) mkdir -p ../../bin/$(TARGET_ARCH)/$(TARGET_OS)/$(BUILD_TYPE)
 	$(EXEC) cp $@ ../../bin/$(TARGET_ARCH)/$(TARGET_OS)/$(BUILD_TYPE)
