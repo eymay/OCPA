@@ -2,9 +2,12 @@
 This repository is the implementation of Accelerating Convolutional Neural Network by Exploiting Sparsity on GPUs
 
 ## Requirements
-+ Ubuntu 18.04
-+ cuda == 10.2
-+ cuDNN == 7.6
+~~+ Ubuntu 18.04~~  
+~~+ cuda == 10.2~~  
+~~+ cuDNN == 7.6~~  
+
+- CUDA == 12.2
+- cuDNN == 8.8+
 
 ## Experiments
 + Vgg-16
