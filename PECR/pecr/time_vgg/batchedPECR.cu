@@ -166,7 +166,7 @@ int main(int argc, char *argv[])
     open_kernel.close();
 
     ofstream time_file(string("PECR/pecr/time_vgg/batchsize") + argv[1]+string(".txt"));
-    for (int i = 0; i < 5; i=++)
+    for (int i = 0; i < 5; i++)
     {
         // kernel
         // const int kernel_width = 3;
