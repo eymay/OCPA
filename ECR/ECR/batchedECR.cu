@@ -4,7 +4,6 @@
 #include <malloc.h>
 #include <fstream>
 #include <assert.h>
-#include <cuda_runtime.h>
 
 using namespace std;
 
