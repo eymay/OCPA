@@ -218,14 +218,13 @@ float *LoadspConvWeigth(int *&fea_width, int *&fea_height, int batch_size, int i
 }
 
 // argv[1]=batch_size; argv[2]=matrix_width; argv[3]=matrix_height
-int main(int argc, char *argv[])
+void runBatchedECR(const int batch_size, const std::string& featurePath, const std::string& kernelPath)
 {
-    int batch_size = atoi(argv[1]);
 
     // load kernel file name
     // string kername_name[49];
     string kername_name[16];
-    ifstream open_kernel("dataset/vggdata/kernel_name.txt");
+    ifstream open_kernel(kernelPath);
     // ifstream open_kernel("/home/lfa/fsy/syt/conv_pool/dataset/resnetdataset_all/kernel_name.txt");
     for (int i = 0; i < 16; i++)
     {
@@ -233,7 +232,7 @@ int main(int argc, char *argv[])
     }
     open_kernel.close();
 
-    ofstream time_file("ECR/ECR/time_vgg/batchsize" + std::to_string(atoi(argv[1])) + string(".txt"));
+    ofstream time_file(featurePath);
     // resnet is 32, vgg is 16, sp is 9, resnet is 49
     for (int i = 1; i < 16; i++)
     {
@@ -399,5 +398,5 @@ int main(int argc, char *argv[])
         free(result);
     }
     time_file.close();
-    return 0;
+    // return 0;
 }

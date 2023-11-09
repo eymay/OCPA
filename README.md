@@ -9,6 +9,10 @@ This repository is the implementation of Accelerating Convolutional Neural Netwo
 - CUDA == 12.2
 - cuDNN == 8.8+
 
+For using CMake and C++ you can use clang, llvm library can be used in addition:
+- llvm-16
+- clang-16+
+
 ## Experiments
 + Vgg-16
 
