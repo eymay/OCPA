@@ -8,3 +8,5 @@ bin/
 
 *.o
 *.out
+build/
+.cache/
