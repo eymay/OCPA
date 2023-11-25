@@ -7,29 +7,27 @@
 #include "util.h"
 
 static llvm::cl::opt<std::string>
-    FeatureNamePath("feature",
-                    llvm::cl::desc("Specify the feature name file path"),
-                    llvm::cl::value_desc("filename"), llvm::cl::Required);
+    FeaturePath("feature", llvm::cl::desc("Specify the feature file path"),
+                llvm::cl::value_desc("file"), llvm::cl::Required);
 
 static llvm::cl::opt<std::string>
-    KernelNamePath("kernel",
-                   llvm::cl::desc("Specify the kernel name file path"),
-                   llvm::cl::value_desc("filename"), llvm::cl::Required);
+    KernelPath("kernel", llvm::cl::desc("Specify the kernel file path"),
+               llvm::cl::value_desc("file"), llvm::cl::Required);
 
 static llvm::cl::opt<std::string>
-    OutputFileDir("output", llvm::cl::desc("Specify the output directory path"),
-                  llvm::cl::value_desc("directory"), llvm::cl::Optional,
-                  llvm::cl::init("."));
+    OutputPath("output", llvm::cl::desc("Specify the output file name"),
+               llvm::cl::value_desc("file"), llvm::cl::Optional,
+               llvm::cl::init(""));
 
 int main(int argc, char **argv) {
 
-  llvm::cl::ParseCommandLineOptions(argc, argv, "Batched ECR Program");
+  llvm::cl::ParseCommandLineOptions(argc, argv, "Single ECR");
 
-  checkPaths(FeatureNamePath);
-  checkPaths(KernelNamePath);
+  checkPaths<std::ifstream>(FeaturePath);
+  checkPaths<std::ifstream>(KernelPath);
 
-  auto [featureWidth, featureHeight] = GetMatrixDimensions(FeatureNamePath);
-  auto [kernelWidth, kernelHeight] = GetMatrixDimensions(KernelNamePath);
+  auto [featureWidth, featureHeight] = GetMatrixDimensions(FeaturePath);
+  auto [kernelWidth, kernelHeight] = GetMatrixDimensions(KernelPath);
 
   OCPA_DEBUG(std::cout << "Feature matrix dimensions: " << featureWidth << " x "
                        << featureHeight << "\n";
@@ -44,8 +42,8 @@ int main(int argc, char **argv) {
 
   HostData host(input, kernel, stride_width);
 
-  if (!loadMatrixData(FeatureNamePath, host.input) ||
-      !loadMatrixData(KernelNamePath, host.kernel)) {
+  if (!loadMatrixData(FeaturePath, host.input) ||
+      !loadMatrixData(KernelPath, host.kernel)) {
     std::cerr << "Failed to load matrix data." << std::endl;
     return 1;
   }
@@ -55,7 +53,14 @@ int main(int argc, char **argv) {
     return 1;
   }
 
-  printMatrixData(host.output);
+  if (!OutputPath.empty()) {
+    checkPaths<std::ofstream>(OutputPath);
+    std::ofstream outputFile(OutputPath);
+    writeMatrixData(host.output, outputFile);
+    outputFile.close();
+  } else {
+    writeMatrixData(host.output, std::cout);
+  }
 
   return 0;
 }

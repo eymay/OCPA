@@ -13,11 +13,10 @@
 #define OCPA_DEBUG(x) x
 #endif
 
-bool checkPaths(std::string input) {
-  std::ifstream inputStream(input);
-  if (!inputStream) {
-    std::cerr << "Error: File path '" << input << "' does not exist.\n";
-    exit(1);
+template <typename StreamType> bool checkPaths(const std::string &path) {
+  StreamType stream(path);
+  if (!stream) {
+    std::cerr << "Error: Unable to open or create file '" << path << "'.\n";
     return false;
   }
   return true;
@@ -85,17 +84,17 @@ bool loadMatrixData(const std::string &filename, Matrix &matrix) {
   return true;
 }
 
-void printMatrixData(const Matrix &matrix) {
+void writeMatrixData(const Matrix &matrix, std::ostream &out) {
   if (matrix.data == nullptr) {
-    std::cout << "Matrix data is null." << std::endl;
+    out << "Matrix data is null." << std::endl;
     return;
   }
 
   for (int i = 0; i < matrix.height; ++i) {
     for (int j = 0; j < matrix.width; ++j) {
-      std::cout << matrix.data[i * matrix.width + j] << " ";
+      out << matrix.data[i * matrix.width + j] << " ";
     }
-    std::cout << "\n";
+    out << "\n";
   }
 }
 
