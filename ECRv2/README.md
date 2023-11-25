@@ -16,6 +16,7 @@ sudo apt install ninja-build cmake clang-16 lld-16 llvm-16
 mkdir build && cd build
 
 cmake -G Ninja -S .. -B . \
+-DCMAKE_BUILD_TYPE=Debug \
 -DCMAKE_CXX_COMPILER=clang++-16 \
 -DCMAKE_CUDA_COMPILER=clang++-16 \
 -DCMAKE_LINKER=lld
