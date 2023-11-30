@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.8 FATAL_ERROR)
 project(ECR LANGUAGES C CXX CUDA)
 
 # Find the LLVM package
-find_package(LLVM REQUIRED CONFIG)
+find_package(LLVM 16 REQUIRED CONFIG)
 
 # Include LLVM directories
 include_directories(${LLVM_INCLUDE_DIRS} "${PROJECT_SOURCE_DIR}/include")
