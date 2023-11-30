@@ -65,6 +65,8 @@ bool runSingleECR(Matrix &input, Matrix &kernel, HostData &host,
     return false;
   }
   Matrix output(host.output.width, host.output.height);
+  CudaTimer timer;
+  timer.startTiming();
 
   // Allocate memory on GPU for input, kernel, and output
   checkCudaErrors(
@@ -84,7 +86,7 @@ bool runSingleECR(Matrix &input, Matrix &kernel, HostData &host,
                              kernel.width * kernel.height * sizeof(float),
                              cudaMemcpyHostToDevice));
 
-  dim3 grid(output.height, 1/*batch size*/);
+  dim3 grid(output.height, 1 /*batch size*/);
   dim3 block(output.width);
 
   BatchedECR<<<grid, block>>>(1 /*batch size*/, stride_width, input, kernel,
@@ -101,6 +103,10 @@ bool runSingleECR(Matrix &input, Matrix &kernel, HostData &host,
   checkCudaErrors(cudaFree(input.data));
   checkCudaErrors(cudaFree(kernel.data));
   checkCudaErrors(cudaFree(output.data));
+
+  timer.stopTiming();
+
+  host.time = timer.getElapsedTime();
 
   return true;
 }

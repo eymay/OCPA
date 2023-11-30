@@ -18,4 +18,30 @@ void check_cuda(cudaError_t result, const char *const func,
   }
 }
 
+class CudaTimer {
+  cudaEvent_t start, stop;
+  float elapsedTime;
+
+public:
+  CudaTimer() : elapsedTime(0.0) {
+    cudaEventCreate(&start);
+    cudaEventCreate(&stop);
+  }
+
+  ~CudaTimer() {
+    cudaEventDestroy(start);
+    cudaEventDestroy(stop);
+  }
+
+  void startTiming() { cudaEventRecord(start, 0); }
+
+  void stopTiming() {
+    cudaEventRecord(stop, 0);
+    cudaEventSynchronize(stop);
+    cudaEventElapsedTime(&elapsedTime, start, stop);
+  }
+
+  float getElapsedTime() const { return elapsedTime; }
+};
+
 #endif // OCPA_CUDA_H

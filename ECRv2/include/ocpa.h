@@ -14,11 +14,13 @@ struct HostData {
   Matrix input;
   Matrix kernel;
   Matrix output;
+  float time;
 
   HostData(const Matrix &input, const Matrix &kernel, int stride_width)
       : input(input.width, input.height), kernel(kernel.width, kernel.height),
         output((input.width - kernel.width) / stride_width + 1,
-               (input.height - kernel.height) / stride_width + 1) {
+               (input.height - kernel.height) / stride_width + 1),
+        time(0.0) {
     this->input.data = new float[input.width * input.height];
     this->kernel.data = new float[kernel.width * kernel.height];
     output.data = new float[output.width * output.height];

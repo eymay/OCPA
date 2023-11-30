@@ -61,6 +61,7 @@ int main(int argc, char **argv) {
   } else {
     writeMatrixData(host.output, std::cout);
   }
+  std::cout << "Measured time: " << host.time << "\n";
 
   return 0;
 }
