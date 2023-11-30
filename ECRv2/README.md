@@ -23,6 +23,9 @@ cmake -G Ninja -S .. -B . \
 
 ninja
 ```
+# singleECR 
+singleECR driver allows us to run single convolution operations per feature and kernel. When the code is built its binary is under build directory.
+
 ## Usage
 Feature and kernel paths can be provided via command line arguments. Optionally, output directory can be provided for the resulting convolution.
 
@@ -32,7 +35,14 @@ Feature and kernel paths can be provided via command line arguments. Optionally,
 For example,
 
 ```shell
-./singleECR --kernel ../../dataset/resnet/kernel/layer3.2.conv2.weight  --feature ../../dataset/resnet/feature/feature38
+./singleECR --kernel ../../dataset/resnet/kernel/layer3.2.conv2.weight  --feature ../../dataset/resnet/feature/feature38 --output singleECR_result.txt
 ```
+## Testing
 
+(TODO_GOKAY A python script that takes in the kernel, feature and optionally the output of singlECR)
+```shell
+python3 verify_convolution.py --kernel ../../dataset/resnet/kernel/layer3.2.conv2.weight  --feature ../../dataset/resnet/feature/feature38 --test_output singleECR_result.txt
+```
+## Time Measurement
 
+(TODO_EYMEN enable time measurements for the gpu kernel run)
