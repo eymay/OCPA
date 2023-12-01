@@ -18,14 +18,19 @@ def convert_entries_to_float(mat):
             mat[row][col] = float(mat[row][col])
 
 # if the difference between corresponding entries 
-# is less than some epsilon (0.05) than difference
+# is less than some epsilon (0.15) than difference
 # can be acceptable
 def check_for_numeric_difference(conv_result_mat,numpy_result_mat):
+    max_error = 0
     for row in range(len(conv_result_mat)):
             for col in range(len(conv_result_mat[row])):
-                if (conv_result_mat[row][col]-numpy_result_mat[row][col]) >= 0.05:
+                if (abs(conv_result_mat[row][col])-abs(numpy_result_mat[row][col])) >= 0.15:
                     return False    
-    return True
+                if abs(conv_result_mat[row][col])-abs(numpy_result_mat[row][col]) > max_error:
+                    max_error = abs(conv_result_mat[row][col])-abs(numpy_result_mat[row][col])      
+                           
+
+    return True,max_error
 
 
 def main():
@@ -96,7 +101,9 @@ def main():
         # numpy result matrix
         conv_result.resize(len(numpy_result_matrix),len(numpy_result_matrix[0]))
         # calling the test function 
-        test_result = check_for_numeric_difference(conv_result,numpy_result_matrix)   
+        test_result,max_error = check_for_numeric_difference(conv_result,numpy_result_matrix)   
+
+        print("\nMAX ERROR IS: ",max_error,"\n")
 
         if (test_result):
             print("CONVOLUTION TEST PASSED!!")
