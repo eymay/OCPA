@@ -83,8 +83,8 @@ def main():
         numpy_feature_matrix.resize(row_no,col_no)
     
         # finding the convolution numpy_feature matrix and numpy_kernel_matrix
-        conv_result = convolve(numpy_feature_matrix,numpy_kernel_matrix,"full")
-        
+        conv_result = convolve(numpy_feature_matrix,numpy_kernel_matrix)
+
         result_matrix = []
         result = open(result_path,"r")
         construct_matrix(result,result_matrix)
@@ -92,11 +92,15 @@ def main():
         convert_entries_to_float(result_matrix)
         numpy_result_matrix = np.array(result_matrix)
 
+        # resizing the conv_matrix with respect 
+        # numpy result matrix
+        conv_result.resize(len(numpy_result_matrix),len(numpy_result_matrix[0]))
+        # calling the test function 
+        test_result = check_for_numeric_difference(conv_result,numpy_result_matrix)   
 
-        print("CONVOLUTION RESULTS FROM NUMPY")
-        print(conv_result)
-        print("CONVOLUTION RESULTS FROM CUDA")
-        print(numpy_result_matrix)
-
+        if (test_result):
+            print("CONVOLUTION TEST PASSED!!")
+        else:
+            print("CONVOLUTION TEST FAILED!!")    
 
 main()
