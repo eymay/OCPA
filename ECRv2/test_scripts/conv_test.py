@@ -17,6 +17,16 @@ def convert_entries_to_float(mat):
         for col in range(len(mat[row])):
             mat[row][col] = float(mat[row][col])
 
+# if the difference between corresponding entries 
+# is less than some epsilon (0.05) than difference
+# can be acceptable
+def check_for_numeric_difference(conv_result_mat,numpy_result_mat):
+    for row in range(len(conv_result_mat)):
+            for col in range(len(conv_result_mat[row])):
+                if (conv_result_mat[row][col]-numpy_result_mat[row][col]) >= 0.05:
+                    return False    
+    return True
+
 
 def main():
     parser = argparse.ArgumentParser()
