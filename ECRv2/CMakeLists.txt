@@ -18,7 +18,7 @@ add_executable(batchedECR ${SRC_FILES} tools/batchedECR.cpp)
 
 # Use CMake's built-in support to find the necessary LLVM components
 # Here we look for support and core which are typically required
-llvm_map_components_to_libnames(llvm_libs support )
+llvm_map_components_to_libnames(llvm_libs support)
 
 # Link LLVM libraries to your project
 # target_link_libraries(${PROJECT_NAME} ${llvm_libs})
