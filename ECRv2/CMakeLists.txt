@@ -10,7 +10,10 @@ add_definitions(${LLVM_DEFINITIONS})
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-add_executable(singleECR src/ECR.cu tools/singleECR.cpp)
+# Automatically include all source files in the src directory
+file(GLOB_RECURSE SRC_FILES "${PROJECT_SOURCE_DIR}/src/*.cpp" "${PROJECT_SOURCE_DIR}/src/*.cu")
+
+add_executable(singleECR ${SRC_FILES} tools/singleECR.cpp)
 
 # Use CMake's built-in support to find the necessary LLVM components
 # Here we look for support and core which are typically required
