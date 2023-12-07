@@ -5,9 +5,18 @@ struct Matrix {
   float *data;
   int width;
   int height;
+  int batch_size;
 
-  Matrix(int w, int h) : data(nullptr), width(w), height(h) {}
-  Matrix(float *data, int w, int h) : data(data), width(w), height(h) {}
+  Matrix(int w, int h) : data(nullptr), width(w), height(h), batch_size(1) {}
+  Matrix(int w, int h, int batch_size)
+      : data(nullptr), width(w), height(h), batch_size(batch_size) {}
+
+  void allocateMemory() { data = new float[width * height * batch_size]; }
+
+  ~Matrix() {
+    if (!data)
+      delete[] data;
+  }
 };
 
 struct HostData {
@@ -21,9 +30,10 @@ struct HostData {
         output((input.width - kernel.width) / stride_width + 1,
                (input.height - kernel.height) / stride_width + 1),
         time(0.0) {
-    this->input.data = new float[input.width * input.height];
-    this->kernel.data = new float[kernel.width * kernel.height];
-    output.data = new float[output.width * output.height];
+    this->input.data = new float[input.width * input.height * input.batch_size];
+    this->kernel.data =
+        new float[kernel.width * kernel.height * kernel.batch_size];
+    output.data = new float[output.width * output.height * output.batch_size];
   }
 
   ~HostData() {
@@ -33,7 +43,7 @@ struct HostData {
   }
 };
 
-bool runECR(Matrix &input, Matrix &kernel, HostData &host,
-                  int stride_width, int batch_size);
+bool runECR(Matrix &input, Matrix &kernel, HostData &host, int stride_width,
+            int batch_size);
 
 #endif // OCPA_H
