@@ -4,8 +4,6 @@
 #include "ocpa.h"
 #include "ocpa_cuda.h"
 
-using namespace std;
-
 bool runCUDNN(Matrix &input, Matrix &kernel, HostData &host, int stride_width,
               int batch_size) {
 
@@ -22,25 +20,13 @@ bool runCUDNN(Matrix &input, Matrix &kernel, HostData &host, int stride_width,
 
   timer.startTiming();
 
-  // Allocating memory for input and kernel on GPU
-  checkCudaErrors(
-      cudaMalloc(&input.data, input.width * input.height * sizeof(float)));
-  checkCudaErrors(
-      cudaMalloc(&kernel.data, kernel.width * kernel.height * sizeof(float)));
-  checkCudaErrors(
-      cudaMalloc(&output.data, output.width * output.height * sizeof(float)));
-
-  const int in_n = batch_size;
-  constexpr int in_c = 1;
-  // in_h => height
-  // in_w => width
+  const int in_n = batch_size; /* number of inputs (batch size) */
+  constexpr int in_c = 1;      /* number of input feature maps */
   const int in_size = input.height * input.width * in_c * in_n;
 
-  constexpr int filt_k = 1;
-  constexpr int filt_c = 1;
-  // filt_h => kernel height
-  // filt_width => kernel_width
-  const int file_size = kernel.height * kernel.width * filt_c * filt_k;
+  constexpr int filt_k = 1; /* number of output feature maps */
+  constexpr int filt_c = 1; /* number of input feature maps */
+  const int filt_size = kernel.height * kernel.width * filt_c * filt_k;
 
   cudnnTensorDescriptor_t in_desc;
   CUDNN_CALL(cudnnCreateTensorDescriptor(&in_desc));
@@ -48,9 +34,8 @@ bool runCUDNN(Matrix &input, Matrix &kernel, HostData &host, int stride_width,
                                         CUDNN_DATA_FLOAT, in_n, in_c,
                                         input.height, input.width));
 
-  float *in_data;
   CUDA_CALL(cudaMalloc(&input.data, in_n * in_c * input.height * input.width *
-                                     sizeof(float)));
+                                        sizeof(float)));
 
   cudnnFilterDescriptor_t filt_desc;
   CUDNN_CALL(cudnnCreateFilterDescriptor(&filt_desc));
@@ -58,17 +43,16 @@ bool runCUDNN(Matrix &input, Matrix &kernel, HostData &host, int stride_width,
                                         CUDNN_TENSOR_NCHW, filt_k, filt_c,
                                         kernel.height, kernel.width));
 
-  float *filt_data;
   CUDA_CALL(cudaMalloc(&kernel.data, filt_k * filt_c * kernel.height *
-                                       kernel.width * sizeof(float)));
+                                         kernel.width * sizeof(float)));
 
   // convolution
-  const int pad_h = 0;
-  const int pad_w = 0;
-  const int str_h = 1;
-  const int str_w = 1;
-  const int dil_h = 1;
-  const int dil_w = 1;
+  constexpr int pad_h = 0;
+  constexpr int pad_w = 0;
+  constexpr int str_h = 1;
+  constexpr int str_w = 1;
+  constexpr int dil_h = 1;
+  constexpr int dil_w = 1;
 
   cudnnConvolutionDescriptor_t conv_desc;
   CUDNN_CALL(cudnnCreateConvolutionDescriptor(&conv_desc));
@@ -76,7 +60,6 @@ bool runCUDNN(Matrix &input, Matrix &kernel, HostData &host, int stride_width,
       conv_desc, pad_h, pad_w, str_h, str_w, dil_h, dil_w, CUDNN_CONVOLUTION,
       CUDNN_DATA_FLOAT));
 
-  // cudnnSetConvolutionMathType(conv_desc, CUDNN_TENSOR_OP_MATH);
   // output
   int out_n;
   int out_c;
@@ -92,7 +75,6 @@ bool runCUDNN(Matrix &input, Matrix &kernel, HostData &host, int stride_width,
                                         CUDNN_DATA_FLOAT, out_n, out_c, out_h,
                                         out_w));
 
-  float *out_data;
   CUDA_CALL(
       cudaMalloc(&output.data, out_n * out_c * out_h * out_w * sizeof(float)));
 
@@ -123,28 +105,27 @@ bool runCUDNN(Matrix &input, Matrix &kernel, HostData &host, int stride_width,
   float alpha = 1.f;
   float beta = 0.f;
 
-  cudaMemcpy(in_data, input.data, in_size * sizeof(float),
+  cudaMemcpy(input.data, host.input.data, in_size * sizeof(float),
              cudaMemcpyHostToDevice);
-  cudaMemcpy(filt_data, kernel.data, file_size * sizeof(float),
+  cudaMemcpy(kernel.data, host.kernel.data, filt_size * sizeof(float),
              cudaMemcpyHostToDevice);
 
-  CUDNN_CALL(cudnnConvolutionForward(cudnn, &alpha, in_desc, in_data, filt_desc,
-                                     filt_data, conv_desc, algo, ws_data,
-                                     ws_size, &beta, out_desc, out_data));
+  CUDNN_CALL(cudnnConvolutionForward(
+      cudnn, &alpha, in_desc, input.data, filt_desc, kernel.data, conv_desc,
+      algo, ws_data, ws_size, &beta, out_desc, output.data));
 
   int result_size = out_n * out_c * out_h * out_w;
-  float *result = new float[result_size];
-  cudaMemcpy(result, out_data, result_size * sizeof(float),
+  cudaMemcpy(host.output.data, output.data, result_size * sizeof(float),
              cudaMemcpyDeviceToHost);
 
   // finalizing
   CUDA_CALL(cudaFree(ws_data));
-  CUDA_CALL(cudaFree(out_data));
+  CUDA_CALL(cudaFree(output.data));
   CUDNN_CALL(cudnnDestroyTensorDescriptor(out_desc));
   CUDNN_CALL(cudnnDestroyConvolutionDescriptor(conv_desc));
-  CUDA_CALL(cudaFree(filt_data));
+  CUDA_CALL(cudaFree(kernel.data));
   CUDNN_CALL(cudnnDestroyFilterDescriptor(filt_desc));
-  CUDA_CALL(cudaFree(in_data));
+  CUDA_CALL(cudaFree(input.data));
   CUDNN_CALL(cudnnDestroyTensorDescriptor(in_desc));
   CUDNN_CALL(cudnnDestroy(cudnn));
 
