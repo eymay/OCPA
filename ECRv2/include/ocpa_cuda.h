@@ -6,8 +6,30 @@
 // Define a macro to wrap CUDA API calls
 #define checkCudaErrors(val) check_cuda((val), #val, __FILE__, __LINE__)
 
+#define CUDA_CALL(f)                                           \
+    {                                                          \
+        cudaError_t err = (f);                                 \
+        if (err != cudaSuccess)                                \
+        {                                                      \
+            std::cout                                          \
+                << "    Error occurred: " << err << std::endl; \
+            std::exit(1);                                      \
+        }                                                      \
+    }
+
+#define CUDNN_CALL(f)                                          \
+    {                                                          \
+        cudnnStatus_t err = (f);                               \
+        if (err != CUDNN_STATUS_SUCCESS)                       \
+        {                                                      \
+            std::cout                                          \
+                << "    Error occurred: " << err << std::endl; \
+            std::exit(1);                                      \
+        }                                                      \
+    }
+
 // Function to check and report CUDA errors
-void check_cuda(cudaError_t result, const char *const func,
+inline void check_cuda(cudaError_t result, const char *const func,
                 const char *const file, int const line) {
   if (result != cudaSuccess) {
     std::cerr << "CUDA error at " << file << ":" << line
