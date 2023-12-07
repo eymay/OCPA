@@ -48,7 +48,7 @@ int main(int argc, char **argv) {
     return 1;
   }
 
-  if (!runSingleECR(input, kernel, host, stride_width)) {
+  if (!runECR(input, kernel, host, stride_width, 1 /*batch size*/)) {
     std::cerr << "Error: runSingleECR failed.\n";
     return 1;
   }

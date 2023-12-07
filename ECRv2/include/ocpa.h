@@ -33,7 +33,7 @@ struct HostData {
   }
 };
 
-bool runSingleECR(Matrix &input, Matrix &kernel, HostData &host,
-                  int stride_width);
+bool runECR(Matrix &input, Matrix &kernel, HostData &host,
+                  int stride_width, int batch_size);
 
 #endif // OCPA_H

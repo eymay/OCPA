@@ -3,8 +3,8 @@
 #include "ocpa.h"
 #include "ocpa_cuda.h"
 
-__global__ void BatchedECR(int batch_size, int stride_width, Matrix input,
-                           Matrix kernel, Matrix output) {
+__global__ void ECR(int batch_size, int stride_width, Matrix input,
+                    Matrix kernel, Matrix output) {
   // A one-dimensional grid processes a matrix, a block processes a row of the
   // matrix, a two-dimensional grid processes multiple matrices.
   const int blockId = blockIdx.y * gridDim.x + blockIdx.x;
@@ -58,8 +58,8 @@ __global__ void BatchedECR(int batch_size, int stride_width, Matrix input,
   }
 }
 
-bool runSingleECR(Matrix &input, Matrix &kernel, HostData &host,
-                  int stride_width) {
+bool runECR(Matrix &input, Matrix &kernel, HostData &host, int stride_width,
+            int batch_size) {
   if (!host.input.data || !host.kernel.data) {
     std::cerr << "Input or kernel data is not allocated on the host\n";
     return false;
@@ -86,11 +86,10 @@ bool runSingleECR(Matrix &input, Matrix &kernel, HostData &host,
                              kernel.width * kernel.height * sizeof(float),
                              cudaMemcpyHostToDevice));
 
-  dim3 grid(output.height, 1 /*batch size*/);
+  dim3 grid(output.height, batch_size);
   dim3 block(output.width);
 
-  BatchedECR<<<grid, block>>>(1 /*batch size*/, stride_width, input, kernel,
-                              output);
+  ECR<<<grid, block>>>(batch_size, stride_width, input, kernel, output);
 
   // Wait for GPU to finish before accessing on host
   cudaDeviceSynchronize();
