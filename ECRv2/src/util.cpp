@@ -75,3 +75,4 @@ bool loadMatrixData(const std::string &filename, Matrix &matrix) {
   file.close();
   return true;
 }
+

@@ -1,6 +1,10 @@
 #ifndef OCPA_H
 #define OCPA_H
 
+enum class calcMethod { ECR, cuDNN };
+enum class cudnnAlgo { GEMM, IMPLICIT_GEMM, FFT_TILING, FAST };
+
+
 struct Matrix {
   float *data;
   int width;
@@ -45,5 +49,8 @@ struct HostData {
 
 bool runECR(Matrix &input, Matrix &kernel, HostData &host, int stride_width,
             int batch_size);
+
+bool runCUDNN(Matrix &input, Matrix &kernel, HostData &host, int stride_width,
+              int batch_size, cudnnAlgo cudnnAlgo);
 
 #endif // OCPA_H

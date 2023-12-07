@@ -6,6 +6,20 @@
 #include "ocpa.h"
 #include "util.h"
 
+
+llvm::cl::opt<calcMethod>
+    CalcMethod(llvm::cl::desc("Select the calculation method:"),
+               llvm::cl::values(clEnumVal(calcMethod::ECR, "ECR calculation"),
+                                clEnumVal(calcMethod::cuDNN, "cuDNN based calculation")));
+
+llvm::cl::opt<cudnnAlgo>
+    cuDNNAlgo(llvm::cl::desc("Select the calculation method:"),
+               llvm::cl::values(clEnumVal(cudnnAlgo::GEMM, "GEMM Algorithm"),
+                                clEnumVal(cudnnAlgo::IMPLICIT_GEMM, "Implicit GEMM Algorithm"),
+                                clEnumVal(cudnnAlgo::FFT_TILING, "FFT Tiling Algorithm"),
+                                clEnumVal(cudnnAlgo::FAST, "Fastest Algorithm is found")
+                                ));
+
 static llvm::cl::opt<std::string>
     FeaturePath("feature", llvm::cl::desc("Specify the feature file path"),
                 llvm::cl::value_desc("file"), llvm::cl::Required);
@@ -48,9 +62,17 @@ int main(int argc, char **argv) {
     return 1;
   }
 
-  if (!runECR(input, kernel, host, stride_width, 1 /*batch size*/)) {
-    std::cerr << "Error: runSingleECR failed.\n";
-    return 1;
+  switch (CalcMethod) {
+      case calcMethod::ECR:
+    if (!runECR(input, kernel, host, stride_width, 1 /*batch size*/)) {
+      std::cerr << "Error: runECR failed.\n";
+      return 1;
+    }
+      case calcMethod::cuDNN:
+    if (!runCUDNN(input, kernel, host, stride_width, 1 /*batch size*/, cuDNNAlgo)) {
+      std::cerr << "Error: run CUDNN failed.\n";
+      return 1;
+    }
   }
 
   if (!OutputPath.empty()) {

@@ -104,7 +104,6 @@ bool runECR(Matrix &input, Matrix &kernel, HostData &host, int stride_width,
   checkCudaErrors(cudaFree(output.data));
 
   timer.stopTiming();
-
   host.time = timer.getElapsedTime();
 
   return true;

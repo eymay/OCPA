@@ -5,7 +5,7 @@
 #include "ocpa_cuda.h"
 
 bool runCUDNN(Matrix &input, Matrix &kernel, HostData &host, int stride_width,
-              int batch_size) {
+              int batch_size, cudnnAlgo cudnnAlgo) {
 
   if (!host.input.data || host.kernel.data) {
     std::cerr << "Input or kernel is not allocated on the host\n";
@@ -79,16 +79,20 @@ bool runCUDNN(Matrix &input, Matrix &kernel, HostData &host, int stride_width,
       cudaMalloc(&output.data, out_n * out_c * out_h * out_w * sizeof(float)));
 
   // algorithm
-  cudnnConvolutionFwdAlgo_t algo = CUDNN_CONVOLUTION_FWD_ALGO_IMPLICIT_GEMM;
+  cudnnConvolutionFwdAlgo_t algo;
+  switch (cudnnAlgo) {
+      case cudnnAlgo::GEMM:
+          algo = CUDNN_CONVOLUTION_FWD_ALGO_IMPLICIT_GEMM;
+      case cudnnAlgo::IMPLICIT_GEMM:
+          algo = CUDNN_CONVOLUTION_FWD_ALGO_IMPLICIT_GEMM;
+      case cudnnAlgo::FFT_TILING:
+          algo = CUDNN_CONVOLUTION_FWD_ALGO_FFT_TILING;
+      case cudnnAlgo::FAST:
+          std::cerr << "FAST is not supported yet\n";
+          return false;
+  }
 
-  // = CUDNN_CONVOLUTION_FWD_ALGO_IMPLICIT_PRECOMP_GEMM;
-  // = CUDNN_CONVOLUTION_FWD_ALGO_WINOGRAD_NONFUSED;
-  // = CUDNN_CONVOLUTION_FWD_ALGO_WINOGRAD;
-  // = CUDNN_CONVOLUTION_FWD_ALGO_IMPLICIT_GEMM;
-  // = CUDNN_CONVOLUTION_FWD_ALGO_FFT_TILING;
-  // = CUDNN_CONVOLUTION_FWD_ALGO_GEMM;
-
-  // CUDNN_CALL(cudnnGetConvolutionForwardAlgorithm(
+  // CUDNN_CALL(cudnnGetConvolutionForwardAlgorithm_v7(
   //     cudnn,
   //     in_desc, filt_desc, conv_desc, out_desc,
   //     CUDNN_CONVOLUTION_FWD_PREFER_FASTEST, 0, &algo));
