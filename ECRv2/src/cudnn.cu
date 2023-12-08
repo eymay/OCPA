@@ -7,7 +7,7 @@
 bool runCUDNN(Matrix &input, Matrix &kernel, HostData &host, int stride_width,
               int batch_size, cudnnAlgo cudnnAlgo) {
 
-  if (!host.input.data || host.kernel.data) {
+  if (!host.input.data || !host.kernel.data) {
     std::cerr << "Input or kernel is not allocated on the host\n";
     return false;
   }
@@ -83,13 +83,19 @@ bool runCUDNN(Matrix &input, Matrix &kernel, HostData &host, int stride_width,
   switch (cudnnAlgo) {
       case cudnnAlgo::GEMM:
           algo = CUDNN_CONVOLUTION_FWD_ALGO_IMPLICIT_GEMM;
+          break;
       case cudnnAlgo::IMPLICIT_GEMM:
           algo = CUDNN_CONVOLUTION_FWD_ALGO_IMPLICIT_GEMM;
+          break;
       case cudnnAlgo::FFT_TILING:
           algo = CUDNN_CONVOLUTION_FWD_ALGO_FFT_TILING;
+          break;
       case cudnnAlgo::FAST:
           std::cerr << "FAST is not supported yet\n";
           return false;
+      case cudnnAlgo::UNDEFINED:
+            std::cerr << "UNDEFINED is not supported yet\n";
+            return false;
   }
 
   // CUDNN_CALL(cudnnGetConvolutionForwardAlgorithm_v7(

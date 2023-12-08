@@ -22,5 +22,5 @@ llvm_map_components_to_libnames(llvm_libs support )
 
 # Link LLVM libraries to your project
 # target_link_libraries(${PROJECT_NAME} ${llvm_libs})
-target_link_libraries(singleECR ${llvm_libs})
-target_link_libraries(batchedECR ${llvm_libs})
+target_link_libraries(singleECR ${llvm_libs} cudnn)
+target_link_libraries(batchedECR ${llvm_libs} cudnn)

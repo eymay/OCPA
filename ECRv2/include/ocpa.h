@@ -2,8 +2,7 @@
 #define OCPA_H
 
 enum class calcMethod { ECR, cuDNN };
-enum class cudnnAlgo { GEMM, IMPLICIT_GEMM, FFT_TILING, FAST };
-
+enum class cudnnAlgo { UNDEFINED, GEMM, IMPLICIT_GEMM, FFT_TILING, FAST };
 
 struct Matrix {
   float *data;

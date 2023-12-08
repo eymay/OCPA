@@ -6,19 +6,22 @@
 #include "ocpa.h"
 #include "util.h"
 
+llvm::cl::opt<calcMethod> CalcMethod(
+    llvm::cl::desc("Select the calculation method:"),
+    llvm::cl::values(clEnumValN(calcMethod::ECR, "ecr", "ECR calculation"),
+                     clEnumValN(calcMethod::cuDNN, "cudnn",
+                                "cuDNN based calculation")),
+    llvm::cl::Required);
 
-llvm::cl::opt<calcMethod>
-    CalcMethod(llvm::cl::desc("Select the calculation method:"),
-               llvm::cl::values(clEnumVal(calcMethod::ECR, "ECR calculation"),
-                                clEnumVal(calcMethod::cuDNN, "cuDNN based calculation")));
-
-llvm::cl::opt<cudnnAlgo>
-    cuDNNAlgo(llvm::cl::desc("Select the calculation method:"),
-               llvm::cl::values(clEnumVal(cudnnAlgo::GEMM, "GEMM Algorithm"),
-                                clEnumVal(cudnnAlgo::IMPLICIT_GEMM, "Implicit GEMM Algorithm"),
-                                clEnumVal(cudnnAlgo::FFT_TILING, "FFT Tiling Algorithm"),
-                                clEnumVal(cudnnAlgo::FAST, "Fastest Algorithm is found")
-                                ));
+llvm::cl::opt<cudnnAlgo> cuDNNAlgo(
+    llvm::cl::desc("Select the cuDNN Algorithm:"),
+    llvm::cl::values(
+        clEnumValN(cudnnAlgo::GEMM, "gemm", "GEMM Algorithm"),
+        clEnumValN(cudnnAlgo::IMPLICIT_GEMM, "imp_gemm",
+                   "Implicit GEMM Algorithm"),
+        clEnumValN(cudnnAlgo::FFT_TILING, "fft", "FFT Tiling Algorithm"),
+        clEnumValN(cudnnAlgo::FAST, "fast", "Fastest Algorithm is found")),
+    llvm::cl::Optional, llvm::cl::init(cudnnAlgo::UNDEFINED));
 
 static llvm::cl::opt<std::string>
     FeaturePath("feature", llvm::cl::desc("Specify the feature file path"),
@@ -36,6 +39,11 @@ static llvm::cl::opt<std::string>
 int main(int argc, char **argv) {
 
   llvm::cl::ParseCommandLineOptions(argc, argv, "Single ECR");
+
+  if (CalcMethod == calcMethod::cuDNN && cuDNNAlgo == cudnnAlgo::UNDEFINED) {
+    std::cerr << "cuDNN Algorithm is not specified.\n";
+    return 1;
+  }
 
   checkPaths<std::ifstream>(FeaturePath);
   checkPaths<std::ifstream>(KernelPath);
@@ -63,16 +71,19 @@ int main(int argc, char **argv) {
   }
 
   switch (CalcMethod) {
-      case calcMethod::ECR:
+  case calcMethod::ECR:
     if (!runECR(input, kernel, host, stride_width, 1 /*batch size*/)) {
       std::cerr << "Error: runECR failed.\n";
       return 1;
     }
-      case calcMethod::cuDNN:
-    if (!runCUDNN(input, kernel, host, stride_width, 1 /*batch size*/, cuDNNAlgo)) {
+    break;
+  case calcMethod::cuDNN:
+    if (!runCUDNN(input, kernel, host, stride_width, 1 /*batch size*/,
+                  cuDNNAlgo)) {
       std::cerr << "Error: run CUDNN failed.\n";
       return 1;
     }
+    break;
   }
 
   if (!OutputPath.empty()) {
