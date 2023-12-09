@@ -23,6 +23,7 @@ template <typename StreamType> bool checkPaths(const std::string &path) {
 }
 
 void writeMatrixData(const Matrix &matrix, std::ostream &out);
+void writeMatrixData(const HalfMatrix &matrix, std::ostream &out);
 
 using Width = int;
 using Height = int;
@@ -30,5 +31,6 @@ using Height = int;
 std::pair<Width, Height> GetMatrixDimensions(const std::string &filename);
 
 bool loadMatrixData(const std::string &filename, Matrix &matrix);
+bool loadMatrixData(const std::string &filename, HalfMatrix &matrix);
 
 #endif // UTIL_H

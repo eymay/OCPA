@@ -58,12 +58,15 @@ __global__ void ECR(int batch_size, int stride_width, Matrix input,
   }
 }
 
-bool runECR(Matrix &input, Matrix &kernel, HostData &host, int stride_width,
+bool runECR(HostData &host, int stride_width,
             int batch_size) {
   if (!host.input.data || !host.kernel.data) {
     std::cerr << "Input or kernel data is not allocated on the host\n";
     return false;
   }
+  // These Matrix structs are dedicated to the GPU
+  Matrix input(host.input.width, host.input.height);
+  Matrix kernel(host.kernel.width, host.kernel.height);
   Matrix output(host.output.width, host.output.height);
   CudaTimer timer;
   timer.startTiming();
@@ -104,7 +107,6 @@ bool runECR(Matrix &input, Matrix &kernel, HostData &host, int stride_width,
   checkCudaErrors(cudaFree(output.data));
 
   timer.stopTiming();
-
   host.time = timer.getElapsedTime();
 
   return true;
