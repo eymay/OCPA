@@ -76,7 +76,7 @@ float *LoadKernel(string name, int *&kernel_width, int *&kernel_height, int batc
     float *kernel = new float[*kernel_width * *kernel_height * batch_size];
     for (int i = 0; i < batch_size; i++)
     {
-        ifstream kernel_data("/home/lfa/fsy/syt/conv_pool/dataset/resnetdataset_all/kernel/" + name);
+        ifstream kernel_data("dataset/resnetdataset_all/kernel/" + name);
         for (int j = i * (*kernel_width * *kernel_height); j < (i + 1) * (*kernel_width * *kernel_height); j++)
             kernel_data >> kernel[j];
         kernel_data.close();
@@ -85,15 +85,19 @@ float *LoadKernel(string name, int *&kernel_width, int *&kernel_height, int batc
     return kernel;
 }
 
-float *LoadvggKernel(string name, int *&kernel_width, int *&kernel_height, int batch_size)
+half *LoadvggKernel(string name, int *&kernel_width, int *&kernel_height, int batch_size)
 {
+    float temp;
     *kernel_width = *kernel_height = 3;
-    float *kernel = new float[*kernel_width * *kernel_height * batch_size];
+    half *kernel = new half[*kernel_width * *kernel_height * batch_size];
     for (int i = 0; i < batch_size; i++)
     {
         ifstream kernel_data("/home/lfa/fsy/syt/conv_pool/dataset/vggdata/kernel/" + name +".txt");
         for (int j = i * (*kernel_width * *kernel_height); j < (i + 1) * (*kernel_width * *kernel_height); j++)
-            kernel_data >> kernel[j];
+        {    
+            kernel_data >> temp;
+            kernel[j]=__float2half(temp);
+        }
         kernel_data.close();
     }
 
@@ -104,7 +108,7 @@ float *LoadConvWeight(int *&fea_width, int *&fea_height, int batch_size, int ind
 {
     string *name = new string[49];
 
-    ifstream fea_name("/home/lfa/fsy/syt/conv_pool/dataset/resnetdataset_all/feature_name.txt");
+    ifstream fea_name("dataset/resnetdataset_all/feature_name.txt");
     for (int i = 0; i < 49; i++)
     {
         fea_name >> name[i];
@@ -126,7 +130,7 @@ float *LoadConvWeight(int *&fea_width, int *&fea_height, int batch_size, int ind
 
     for (int i = 0; i < batch_size; i++)
     {
-        ifstream fea_data("/home/lfa/fsy/syt/conv_pool/dataset/resnetdataset_all/feature/" + name[index]);
+        ifstream fea_data("dataset/resnetdataset_all/feature/" + name[index]);
         for (int j = i * (*fea_width * *fea_height); j < (i + 1) * (*fea_width * *fea_height); j++)
             fea_data >> feature[j];
         fea_data.close();
@@ -135,7 +139,7 @@ float *LoadConvWeight(int *&fea_width, int *&fea_height, int batch_size, int ind
     return feature;
 }
 
-float *LoadVggConvWeigth(int *&fea_width, int *&fea_height, int batch_size, int index)
+half *LoadVggConvWeigth(int *&fea_width, int *&fea_height, int batch_size, int index)
 {
     string *name = new string[16];
 
@@ -152,14 +156,17 @@ float *LoadVggConvWeigth(int *&fea_width, int *&fea_height, int batch_size, int 
 
     *fea_width = *fea_height = shape[index];
     // *fea_width = *fea_height = shape;
-
-    float *feature = new float[batch_size * *fea_width * *fea_height];
+    float temp;
+    half *feature = new half[batch_size * *fea_width * *fea_height];
 
     for (int i = 0; i < batch_size; i++)
     {
         ifstream fea_data("/home/lfa/fsy/syt/conv_pool/dataset/vggdata/feature/" + name[index]);
         for (int j = i * (*fea_width * *fea_height); j < (i + 1) * (*fea_width * *fea_height); j++)
-            fea_data >> feature[j];
+        {    
+            fea_data >> temp;
+            feature[j]=__float2half(temp);
+        }
         fea_data.close();
     }
 
@@ -196,22 +203,12 @@ float *LoadspConvWeigth(int *&fea_width, int *&fea_height, int batch_size, int i
     return feature;
 }
 
-half *FloatToHalf(float *number, int length)
-{
-    half *arr = new half[length];
-    for(int i = 0; i < length; i++)
-    {
-        arr[i] = __float2half(number[i]);
-    }
-    return arr;
-}
-
 int main(int argc, char *argv[])
 {
     int batch_size = atoi(argv[1]);
     // load kernel file name
     // string kername_name[49];
-    // ifstream open_kernel("/home/lfa/fsy/syt/conv_pool/dataset/resnetdataset_all/kernel_name.txt");
+    // ifstream open_kernel("/home/syt/conv_pool/conv_pool/dataset/resnetdataset_all/kernel_name.txt");
     string kername_name[16];
     ifstream open_kernel("/home/lfa/fsy/syt/conv_pool/dataset/vggdata/kernel_name.txt");
     for (int i = 0; i < 16; i++)
@@ -220,10 +217,10 @@ int main(int argc, char *argv[])
     }
     open_kernel.close();
 
-    ofstream time_file(string("/home/lfa/fsy/syt/conv_pool/ECR/cudnn/time_2080/stride1_batchsize") + argv[1] + string(".txt"));
+    ofstream time_file(string("/home/lfa/fsy/syt/conv_pool/ECR/cudnn/time_2080/half_batchsize") + argv[1] + string(".txt"));
     //  ofstream time_file(string("/home/syt/conv_pool/conv_pool/ECR/cudnn/time_gemm/batchsize") + argv[1] + string(".txt"));
 
-    for (int i = 0; i < 16; i++)
+    for (int t = 0; t < 16; t++)
     {
         cudnnHandle_t cudnn;
         CUDNN_CALL(cudnnCreate(&cudnn));
@@ -232,12 +229,11 @@ int main(int argc, char *argv[])
         // int batch_size = 2;
         int *fea_width_ = new int;
         int *fea_height_ = new int;
-        float *matrix;
+        half *matrix;
         // matrix = LoadConvWeight(fea_width_, fea_height_, batch_size, i);
-        matrix = LoadVggConvWeigth(fea_width_, fea_height_, batch_size, i);
-        // half *half_matrix = FloatToHalf(matrix, *fea_width_ * *fea_height_ * batch_size);
-
+        matrix = LoadVggConvWeigth(fea_width_, fea_height_, batch_size, t);
         // matrix = LoadspConvWeigth(fea_width_, fea_height_, batch_size, i);
+
         const int in_n = batch_size;
         const int in_c = 1;
         const int in_h = *fea_width_;
@@ -250,13 +246,11 @@ int main(int argc, char *argv[])
         // int stride = 1;
         int *kernel_width_ = new int;
         int *kernel_height_ = new int;
-        float *kernel;
+        half *kernel;
 
         // kernel = LoadKernel(kername_name[i], kernel_width_, kernel_height_, batch_size, i);
 
-        kernel = LoadvggKernel(kername_name[0], kernel_width_, kernel_height_, batch_size);
-        // half *half_kernel = FloatToHalf(kernel, *kernel_width_ * *kernel_height_ * batch_size);
-
+        kernel = LoadvggKernel(kername_name[t], kernel_width_, kernel_height_, batch_size);
         const int filt_k = 1;
         const int filt_c = 1;
         const int filt_h = *kernel_width_;
@@ -275,22 +269,22 @@ int main(int argc, char *argv[])
         cudnnTensorDescriptor_t in_desc;
         CUDNN_CALL(cudnnCreateTensorDescriptor(&in_desc));
         CUDNN_CALL(cudnnSetTensor4dDescriptor(
-            in_desc, CUDNN_TENSOR_NCHW, CUDNN_DATA_FLOAT,
+            in_desc, CUDNN_TENSOR_NCHW, CUDNN_DATA_HALF,
             in_n, in_c, in_h, in_w));
 
-        float *in_data;
+            half *in_data;
         CUDA_CALL(cudaMalloc(
-            &in_data, in_n * in_c * in_h * in_w * sizeof(float)));
+            &in_data, in_n * in_c * in_h * in_w * sizeof(float)/2));
 
         cudnnFilterDescriptor_t filt_desc;
         CUDNN_CALL(cudnnCreateFilterDescriptor(&filt_desc));
         CUDNN_CALL(cudnnSetFilter4dDescriptor(
-            filt_desc, CUDNN_DATA_FLOAT, CUDNN_TENSOR_NCHW,
+            filt_desc, CUDNN_DATA_HALF, CUDNN_TENSOR_NCHW,
             filt_k, filt_c, filt_h, filt_w));
 
-        float *filt_data;
+        half *filt_data;
         CUDA_CALL(cudaMalloc(
-            &filt_data, filt_k * filt_c * filt_h * filt_w * sizeof(float)));
+            &filt_data, filt_k * filt_c * filt_h * filt_w * sizeof(float)/2));
 
         // convolution
         const int pad_h = 0;
@@ -305,7 +299,7 @@ int main(int argc, char *argv[])
         CUDNN_CALL(cudnnSetConvolution2dDescriptor(
             conv_desc,
             pad_h, pad_w, str_h, str_w, dil_h, dil_w,
-            CUDNN_CONVOLUTION, CUDNN_DATA_FLOAT));
+            CUDNN_CONVOLUTION, CUDNN_DATA_HALF));
         // cudnnSetConvolutionMathType(conv_desc, CUDNN_TENSOR_OP_MATH);
         // output
         int out_n;
@@ -321,17 +315,16 @@ int main(int argc, char *argv[])
         cudnnTensorDescriptor_t out_desc;
         CUDNN_CALL(cudnnCreateTensorDescriptor(&out_desc));
         CUDNN_CALL(cudnnSetTensor4dDescriptor(
-            out_desc, CUDNN_TENSOR_NCHW, CUDNN_DATA_FLOAT,
+            out_desc, CUDNN_TENSOR_NCHW, CUDNN_DATA_HALF,
             out_n, out_c, out_h, out_w));
 
-        float *out_data;
+        half *out_data;
         CUDA_CALL(cudaMalloc(
-            &out_data, out_n * out_c * out_h * out_w * sizeof(float)));
+            &out_data, out_n * out_c * out_h * out_w * sizeof(float)/2));
 
         // algorithm
-        cudnnConvolutionFwdAlgo_t algo = CUDNN_CONVOLUTION_FWD_ALGO_IMPLICIT_GEMM;
+        cudnnConvolutionFwdAlgo_t algo = CUDNN_CONVOLUTION_FWD_ALGO_IMPLICIT_PRECOMP_GEMM;
 
-        // = CUDNN_CONVOLUTION_FWD_ALGO_IMPLICIT_PRECOMP_GEMM;
         // = CUDNN_CONVOLUTION_FWD_ALGO_WINOGRAD_NONFUSED;
         // = CUDNN_CONVOLUTION_FWD_ALGO_WINOGRAD;
         // = CUDNN_CONVOLUTION_FWD_ALGO_IMPLICIT_GEMM;
@@ -348,12 +341,12 @@ int main(int argc, char *argv[])
         CUDNN_CALL(cudnnGetConvolutionForwardWorkspaceSize(
             cudnn, in_desc, filt_desc, conv_desc, out_desc, algo, &ws_size));
 
-        float *ws_data;
+        half *ws_data;
         CUDA_CALL(cudaMalloc(&ws_data, ws_size));
 
         // perform
-        float alpha = 1.f;
-        float beta = 0.f;
+        float alpha = 1.0;
+        float beta = 0.0;
 
         /*
         float input_data[25 * 3] = {0, 0, 15, 8, 0, 22, 0, 0, 23, 0, 0, 8, 0, 0, 0, 0, 0, 19, 0, 0, 10, 4, 0, 0, 22,
@@ -364,8 +357,8 @@ int main(int argc, char *argv[])
                                     0, 1, 0, 1, 0, 1, 0, 1, 0};
         */
 
-        cudaMemcpy(in_data, matrix, in_size * sizeof(float), cudaMemcpyHostToDevice);
-        cudaMemcpy(filt_data, kernel, file_size * sizeof(float), cudaMemcpyHostToDevice);
+        cudaMemcpy(in_data, matrix, in_size * sizeof(float)/2, cudaMemcpyHostToDevice);
+        cudaMemcpy(filt_data, kernel, file_size * sizeof(float)/2, cudaMemcpyHostToDevice);
 
         CUDNN_CALL(cudnnConvolutionForward(
             cudnn,
@@ -384,8 +377,8 @@ int main(int argc, char *argv[])
         // print(out_data, out_n, out_c, out_h, out_w);
 
         int result_size = out_n * out_c * out_h * out_w;
-        float *result = new float[result_size];
-        cudaMemcpy(result, out_data, result_size * sizeof(float), cudaMemcpyDeviceToHost);
+        half *result = new half[result_size];
+        cudaMemcpy(result, out_data, result_size * sizeof(float)/2, cudaMemcpyDeviceToHost);
 
         // finalizing
         CUDA_CALL(cudaFree(ws_data));
@@ -411,17 +404,17 @@ int main(int argc, char *argv[])
         time_file << elapsed_time << endl;
         // time_file.close();
         // 结果写入文件
-        string file_name = "/home/lfa/fsy/syt/conv_pool/ECR/cudnn/output_vgg/output" + to_string(i);
-        // string file_name = "/home/syt/conv_pool/conv_pool/ECR/cudnn/out_gemm/output" + to_string(i);
+        // string file_name = "/home/lfa/fsy/syt/conv_pool/ECR/cudnn/output_vgg/output" + to_string(i);
+        // // string file_name = "/home/syt/conv_pool/conv_pool/ECR/cudnn/out_gemm/output" + to_string(i);
 
-        ofstream output_file(file_name);
-        for (int i = 0; i < result_size; i++)
-        {
-            output_file << result[i] << " ";
-            if ((i + 1) % out_w == 0)
-                output_file << "\n";
-        }
-        output_file.close();
+        // ofstream output_file(file_name);
+        // for (int i = 0; i < result_size; i++)
+        // {
+        //     output_file << result[i] << " ";
+        //     if ((i + 1) % out_w == 0)
+        //         output_file << "\n";
+        // }
+        // output_file.close();
         // cout << "res:" << result[1] << endl;
         memset(result,0,sizeof(result));
         free(result);
