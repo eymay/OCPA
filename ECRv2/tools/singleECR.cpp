@@ -13,6 +13,12 @@ llvm::cl::opt<calcMethod> CalcMethod(
                                 "cuDNN based calculation")),
     llvm::cl::Required);
 
+llvm::cl::opt<floatType> FloatPrecision(
+    llvm::cl::desc("Select the float precision for cuDNN:"),
+    llvm::cl::values(clEnumValN(floatType::floatType, "float", "Float type"),
+                     clEnumValN(floatType::halfType, "half", "Half type")),
+    llvm::cl::Optional, llvm::cl::init(floatType::floatType));
+
 llvm::cl::opt<cudnnAlgo> cuDNNAlgo(
     llvm::cl::desc("Select the cuDNN Algorithm:"),
     llvm::cl::values(
@@ -56,45 +62,78 @@ int main(int argc, char **argv) {
              std::cout << "Kernel matrix dimensions: " << kernelWidth << " x "
                        << kernelHeight << "\n");
 
-  // Data that will be passed to the GPU
   Matrix input(featureWidth, featureHeight);
   Matrix kernel(kernelWidth, kernelHeight);
 
-  int stride_width = 1;
+  constexpr int stride_width = 1;
 
-  HostData host(input, kernel, stride_width);
 
-  if (!loadMatrixData(FeaturePath, host.input) ||
-      !loadMatrixData(KernelPath, host.kernel)) {
-    std::cerr << "Failed to load matrix data." << std::endl;
-    return 1;
-  }
+  switch (FloatPrecision) {
+  case floatType::floatType: {
+    HostData host(input, kernel, stride_width);
 
-  switch (CalcMethod) {
-  case calcMethod::ECR:
-    if (!runECR(input, kernel, host, stride_width, 1 /*batch size*/)) {
-      std::cerr << "Error: runECR failed.\n";
+    if (!loadMatrixData(FeaturePath, host.input) ||
+        !loadMatrixData(KernelPath, host.kernel)) {
+      std::cerr << "Failed to load matrix data." << std::endl;
       return 1;
     }
+
+    switch (CalcMethod) {
+    case calcMethod::ECR:
+      if (!runECR(host, stride_width, 1 /*batch size*/)) {
+        std::cerr << "Error: runECR failed.\n";
+        return 1;
+      }
+      break;
+    case calcMethod::cuDNN:
+      if (!runCUDNN(host, stride_width, 1 /*batch size*/, cuDNNAlgo)) {
+        std::cerr << "Error: run CUDNN failed.\n";
+        return 1;
+      }
+      break;
+    }
+    if (!OutputPath.empty()) {
+      checkPaths<std::ofstream>(OutputPath);
+      std::ofstream outputFile(OutputPath);
+      writeMatrixData(host.output, outputFile);
+      outputFile.close();
+    } else {
+      writeMatrixData(host.output, std::cout);
+    }
+    std::cout << "Measured time: " << host.time << "\n";
     break;
-  case calcMethod::cuDNN:
-    if (!runCUDNN(input, kernel, host, stride_width, 1 /*batch size*/,
-                  cuDNNAlgo)) {
-      std::cerr << "Error: run CUDNN failed.\n";
+}
+  case floatType::halfType:
+    HalfHostData halfhost(input, kernel, stride_width);
+    if (!loadMatrixData(FeaturePath, halfhost.input) ||
+        !loadMatrixData(KernelPath, halfhost.kernel)) {
+      std::cerr << "Failed to load matrix data." << std::endl;
       return 1;
     }
+
+    switch (CalcMethod) {
+    case calcMethod::ECR:
+      std::cerr << "ECR does not support half\n";
+      return 1;
+    case calcMethod::cuDNN:
+      if (!runCUDNN(halfhost, stride_width, 1 /*batch size*/, cuDNNAlgo)) {
+        std::cerr << "Error: run CUDNN failed.\n";
+        return 1;
+      }
+      break;
+    }
+
+    if (!OutputPath.empty()) {
+      checkPaths<std::ofstream>(OutputPath);
+      std::ofstream outputFile(OutputPath);
+      writeMatrixData(halfhost.output, outputFile);
+      outputFile.close();
+    } else {
+      writeMatrixData(halfhost.output, std::cout);
+    }
+    std::cout << "Measured time: " << halfhost.time << "\n";
     break;
   }
-
-  if (!OutputPath.empty()) {
-    checkPaths<std::ofstream>(OutputPath);
-    std::ofstream outputFile(OutputPath);
-    writeMatrixData(host.output, outputFile);
-    outputFile.close();
-  } else {
-    writeMatrixData(host.output, std::cout);
-  }
-  std::cout << "Measured time: " << host.time << "\n";
 
   return 0;
 }
