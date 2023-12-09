@@ -8,9 +8,11 @@
 
 llvm::cl::opt<calcMethod> CalcMethod(
     llvm::cl::desc("Select the calculation method:"),
-    llvm::cl::values(clEnumValN(calcMethod::ECR, "ecr", "ECR calculation"),
-                     clEnumValN(calcMethod::cuDNN, "cudnn",
-                                "cuDNN based calculation")),
+    llvm::cl::values(
+        clEnumValN(calcMethod::ECR, "ecr", "ECR calculation for convolution"),
+        clEnumValN(calcMethod::PECR, "pecr",
+                   "PECR calculation for combined convolution and pooling"),
+        clEnumValN(calcMethod::cuDNN, "cudnn", "cuDNN based calculation")),
     llvm::cl::Required);
 
 llvm::cl::opt<floatType> FloatPrecision(
@@ -67,7 +69,6 @@ int main(int argc, char **argv) {
 
   constexpr int stride_width = 1;
 
-
   switch (FloatPrecision) {
   case floatType::floatType: {
     HostData host(input, kernel, stride_width);
@@ -81,6 +82,12 @@ int main(int argc, char **argv) {
     switch (CalcMethod) {
     case calcMethod::ECR:
       if (!runECR(host, stride_width, 1 /*batch size*/)) {
+        std::cerr << "Error: runECR failed.\n";
+        return 1;
+      }
+      break;
+    case calcMethod::PECR:
+      if (!runPECR(host, stride_width, 1 /*batch size*/)) {
         std::cerr << "Error: runECR failed.\n";
         return 1;
       }
@@ -102,7 +109,7 @@ int main(int argc, char **argv) {
     }
     std::cout << "Measured time: " << host.time << "\n";
     break;
-}
+  }
   case floatType::halfType:
     HalfHostData halfhost(input, kernel, stride_width);
     if (!loadMatrixData(FeaturePath, halfhost.input) ||
@@ -114,6 +121,10 @@ int main(int argc, char **argv) {
     switch (CalcMethod) {
     case calcMethod::ECR:
       std::cerr << "ECR does not support half\n";
+      return 1;
+    case calcMethod::PECR:
+      // TODO add half support
+      std::cerr << "PECR currently does not support half\n";
       return 1;
     case calcMethod::cuDNN:
       if (!runCUDNN(halfhost, stride_width, 1 /*batch size*/, cuDNNAlgo)) {
