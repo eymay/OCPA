@@ -11,3 +11,17 @@ bin/
 build/
 .cache/
 .vscode/
+
+speedup/vgg/singleECR.txt
+speedup/vgg/cuDNN_imp_gemm.txt
+speedup/vgg/cuDNN_gemm.txt
+speedup/vgg/cuDNN_fft.txt
+speedup/vgg/cuDNN_fast.txt
+speedup/vgg/batchedECR.txt
+ECRv2/times_vgg/singleECR_times.txt
+speedup/resnet/singleECR.txt
+speedup/resnet/cuDNN_imp_gemm.txt
+speedup/resnet/cuDNN_gemm.txt
+speedup/resnet/cuDNN_fft.txt
+speedup/resnet/cuDNN_fast.txt
+speedup/resnet/batchedECR.txt
