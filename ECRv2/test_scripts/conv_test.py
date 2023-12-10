@@ -1,5 +1,12 @@
-# argparse module is used to
-# parse command line arguments
+"""
+    argparse module is used to
+    parse command line arguments
+
+    scipy.signal mdoule's convolve
+    method is used to test convolution
+    results
+ """
+
 import argparse
 import numpy as np
 from scipy.signal import convolve
