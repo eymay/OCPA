@@ -26,3 +26,10 @@ llvm_map_components_to_libnames(llvm_libs support)
 # target_link_libraries(${PROJECT_NAME} ${llvm_libs})
 target_link_libraries(singleECR ${llvm_libs} cudnn ${CUDA_LIBRARIES})
 target_link_libraries(batchedECR ${llvm_libs} cudnn ${CUDA_LIBRARIES})
+
+# Set the compute capability for NVIDIA GPUs
+set(CUDA_ARCHITECTURES 75)
+
+# Add the compute capability to your targets
+set_property(TARGET singleECR PROPERTY CUDA_ARCHITECTURES ${CUDA_ARCHITECTURES})
+set_property(TARGET batchedECR PROPERTY CUDA_ARCHITECTURES ${CUDA_ARCHITECTURES})
