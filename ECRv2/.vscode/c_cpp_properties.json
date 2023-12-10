@@ -4,7 +4,9 @@
             "name": "Linux",
             "includePath": [
                 "${workspaceFolder}/**",
-                "/usr/local/cuda-12.1/targets/x86_64-linux/include"
+                "/usr/local/cuda-12.1/targets/x86_64-linux/include/**",
+                "/home/gokay/llvm-project/llvm/include/**",
+                "/usr/include/llvm-16"
             ],
             "defines": [],
             "compilerPath": "/home/gokay/llvm-project/build/bin/clang",

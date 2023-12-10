@@ -1,0 +1,16 @@
+Measured time: 0.136416
+Measured time: 0.986848
+Measured time: 0.540448
+Measured time: 0.542496
+Measured time: 0.334304
+Measured time: 0.338272
+Measured time: 0.376416
+Measured time: 0.340064
+Measured time: 0.239392
+Measured time: 0.243744
+Measured time: 0.24096
+Measured time: 0.237184
+Measured time: 0.224032
+Measured time: 0.238336
+Measured time: 0.246112
+Measured time: 0.1368
