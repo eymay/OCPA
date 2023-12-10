@@ -14,6 +14,7 @@ sudo apt install ninja-build cmake clang-16 lld-16 llvm-16
 
 ## Build
 
+For development:
 ```shell
 mkdir build && cd build
 
@@ -26,8 +27,15 @@ cmake -G Ninja -S .. -B . \
 ninja
 ```
 
-# singleECR
-
+For time measurements, invoke CMake with `Release` mode:
+```shell
+cmake -G Ninja -S .. -B . \
+-DCMAKE_BUILD_TYPE=Release \
+-DCMAKE_CXX_COMPILER=clang++-16 \
+-DCMAKE_CUDA_COMPILER=clang++-16 \
+-DCMAKE_LINKER=lld
+```
+# singleECR 
 singleECR driver allows us to run single convolution operations per feature and kernel. When the code is built its binary is under build directory. Time measurement is printed to console.
 
 ## Usage

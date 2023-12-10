@@ -3,7 +3,7 @@
 
 #include "cuda_fp16.h"
 
-enum class calcMethod { ECR, cuDNN };
+enum class calcMethod { ECR, PECR, cuDNN };
 enum class floatType { floatType, halfType };
 enum class cudnnAlgo { UNDEFINED, GEMM, IMPLICIT_GEMM, FFT_TILING, FAST };
 
@@ -58,9 +58,7 @@ struct HalfMatrix {
 
   void allocateMemory() { data = new half[width * height * batch_size]; }
 
-  ~HalfMatrix() {
-      delete[] data;
-  }
+  ~HalfMatrix() { delete[] data; }
 };
 
 struct HalfHostData {
@@ -69,7 +67,8 @@ struct HalfHostData {
   HalfMatrix output;
   float time;
 
-  HalfHostData(const HalfMatrix &input, const HalfMatrix &kernel, int stride_width)
+  HalfHostData(const HalfMatrix &input, const HalfMatrix &kernel,
+               int stride_width)
       : input(input.width, input.height), kernel(kernel.width, kernel.height),
         output((input.width - kernel.width) / stride_width + 1,
                (input.height - kernel.height) / stride_width + 1),
@@ -95,12 +94,13 @@ struct HalfHostData {
   }
 };
 
-bool runECR(HostData &host, int stride_width,
-            int batch_size);
+bool runECR(HostData &host, int stride_width, int batch_size);
 
-bool runCUDNN(HostData &host, int stride_width,
-              int batch_size, cudnnAlgo cudnnAlgo);
-bool runCUDNN(HalfHostData &host, int stride_width,
-              int batch_size, cudnnAlgo cudnnAlgo);
+bool runPECR(HostData &host, int stride_width, int batch_size);
+
+bool runCUDNN(HostData &host, int stride_width, int batch_size,
+              cudnnAlgo cudnnAlgo);
+bool runCUDNN(HalfHostData &host, int stride_width, int batch_size,
+              cudnnAlgo cudnnAlgo);
 
 #endif // OCPA_H
