@@ -15,6 +15,7 @@ vgg_feature="all_conv_name.txt"
 vgg_kernel="kernel_name.txt"
 
 singleECR_times=""
+batchedECR_times=""
 cuDNN_times=""
 
 # checking whether time files exist if not
@@ -28,6 +29,11 @@ then
     if [ ! -f "../times_resnet/singleECR_times.txt" ]
     then
         singleECR_times="../times_resnet/singleECR_times.txt"
+    fi
+
+    if [ ! -f "../times_resnet/batchedECR_times.txt" ]
+    then
+        batchedECR_times="../times_resnet/batchedECR_times.txt"
     fi
 
     if [ ! -f "../times_resnet/cuDNN_times.txt" ]
@@ -44,6 +50,11 @@ then
     if [ ! -f "../times_vgg/singleECR_times.txt" ]
     then 
          singleECR_times="../times_vgg/singleECR_times.txt"
+    fi
+
+     if [ ! -f "../times_vgg/batchedECR_times.txt" ]
+    then 
+         batchedECR_times="../times_vgg/batchedECR_times.txt"
     fi
 
     if  [ ! -f "../times_vgg/cuDNN_times.txt" ]
@@ -138,12 +149,16 @@ do
      cd ../build    
      if [ "$2" == "cudnn" ]
      then   
-        ./singleECR --$2 --$3 --kernel ../../dataset/$1/kernel/${kernel_array[$i]} --feature ../../dataset/$1/feature/${feature_array[$i]} --output singleECR_result.txt > $time_file
+        ./singleECR --$2 --$3 --kernel ../../dataset/$1/kernel/${kernel_array[$i]} --feature ../../dataset/$1/feature/${feature_array[$i]} > $time_file
      elif [ "$2" == "ecr" ]
      then
-        ./singleECR --$2 --kernel ../../dataset/$1/kernel/${kernel_array[$i]} --feature ../../dataset/$1/feature/${feature_array[$i]} --output cuDNN_result.txt > $time_file
+        ./singleECR --$2 --kernel ../../dataset/$1/kernel/${kernel_array[$i]} --feature ../../dataset/$1/feature/${feature_array[$i]}  > $time_file    
+     elif [ "$2" == "pecr" ]
+     then
+        ./batchedECR  --kernel ../../dataset/$1/kernel/${kernel_array[$i]} --feature ../../dataset/$1/feature/${feature_array[$i]} --batch_size 1  > $time_file
      fi    
-    
+       
+
     cat $time_file
      # finding out line number in $time_file
      line_no=0
@@ -161,7 +176,11 @@ do
      then
         
         file_to_write_time=$singleECR_times
-     fi       
+     elif [ "$2" == "pecr" ]
+     then
+        
+        file_to_write_time=$batchedECR_times
+     fi        
 
      line_count=$line_no   
      while read -r line
