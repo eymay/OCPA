@@ -1,49 +1,48 @@
-Measured time: 0.18864
-Measured time: 0.270976
-Measured time: 0.190208
-Measured time: 0.217824
-Measured time: 0.352704
-Measured time: 0.239424
-Measured time: 0.193088
-Measured time: 0.379744
-Measured time: 0.193664
-Measured time: 0.205568
-Measured time: 0.352384
-Measured time: 0.167872
-Measured time: 0.170112
-Measured time: 0.240608
-Measured time: 0.26048
-Measured time: 0.176928
-Measured time: 0.24176
-Measured time: 0.166144
-Measured time: 0.17376
-Measured time: 0.245152
-Measured time: 0.162848
-Measured time: 0.16928
-Measured time: 0.279104
-Measured time: 0.171776
-Measured time: 0.172864
-Measured time: 0.248128
-Measured time: 0.170496
-Measured time: 0.169888
-Measured time: 0.243072
-Measured time: 0.170592
-Measured time: 0.172448
-Measured time: 0.24064
-Measured time: 0.1696
-Measured time: 0.166176
-Measured time: 0.243072
-Measured time: 0.165248
-Measured time: 0.171904
-Measured time: 0.231264
-Measured time: 0.162944
-Measured time: 0.169472
-Measured time: 0.29504
-Measured time: 0.167232
-Measured time: 0.1672
-Measured time: 0.23264
-Measured time: 0.172672
-Measured time: 0.169216
-Measured time: 0.229152
-Measured time: 0.169536
-
+0.16624
+0.173248
+0.3352
+0.17856
+0.168928
+0.272832
+0.182112
+0.178784
+0.169376
+0.177408
+0.171264
+0.170656
+0.163808
+0.15936
+0.161536
+0.200576
+0.165888
+0.162656
+0.160256
+0.16272
+0.156448
+0.161696
+0.165152
+0.161184
+0.154656
+0.161312
+0.161216
+0.27184
+0.165856
+0.20032
+0.161056
+0.1616
+0.194016
+0.159872
+0.158496
+0.158656
+0.15888
+0.27264
+0.164288
+0.156192
+0.20304
+0.155424
+0.158976
+0.205696
+0.163552
+0.181088
+0.158752
+0.157952
