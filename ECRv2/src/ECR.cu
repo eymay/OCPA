@@ -58,35 +58,39 @@ __global__ void ECR(int batch_size, int stride_width, Matrix input,
   }
 }
 
-bool runECR(HostData &host, int stride_width,
-            int batch_size) {
+bool runECR(HostData &host, int stride_width, int batch_size) {
   if (!host.input.data || !host.kernel.data) {
     std::cerr << "Input or kernel data is not allocated on the host\n";
     return false;
   }
   // These Matrix structs are dedicated to the GPU
-  Matrix input(host.input.width, host.input.height);
-  Matrix kernel(host.kernel.width, host.kernel.height);
-  Matrix output(host.output.width, host.output.height);
+  Matrix input(host.input.width, host.input.height, batch_size);
+  Matrix kernel(host.kernel.width, host.kernel.height, batch_size);
+  Matrix output(host.output.width, host.output.height, batch_size);
   CudaTimer timer;
   timer.startTiming();
 
   // Allocate memory on GPU for input, kernel, and output
   checkCudaErrors(
-      cudaMalloc(&input.data, input.width * input.height * sizeof(float)));
-  checkCudaErrors(
-      cudaMalloc(&kernel.data, kernel.width * kernel.height * sizeof(float)));
-  checkCudaErrors(
-      cudaMalloc(&output.data, output.width * output.height * sizeof(float)));
+      cudaMalloc(&input.data, input.width * input.height * input.batch_size *
+                                  sizeof(float)));
+  checkCudaErrors(cudaMalloc(&kernel.data, kernel.width * kernel.height *
+                                               kernel.batch_size *
+                                               sizeof(float)));
+  checkCudaErrors(cudaMalloc(&output.data, output.width * output.height *
+                                               output.batch_size *
+                                               sizeof(float)));
 
   // Copy input and kernel data from host to device
   // Assuming h_input and h_kernel are arrays containing the input and kernel
   // data on the host
-  checkCudaErrors(cudaMemcpy(input.data, host.input.data,
-                             input.width * input.height * sizeof(float),
-                             cudaMemcpyHostToDevice));
+  checkCudaErrors(
+      cudaMemcpy(input.data, host.input.data,
+                 input.width * input.height * input.batch_size * sizeof(float),
+                 cudaMemcpyHostToDevice));
   checkCudaErrors(cudaMemcpy(kernel.data, host.kernel.data,
-                             kernel.width * kernel.height * sizeof(float),
+                             kernel.width * kernel.height * kernel.batch_size *
+                                 sizeof(float),
                              cudaMemcpyHostToDevice));
 
   dim3 grid(output.height, batch_size);
@@ -99,7 +103,8 @@ bool runECR(HostData &host, int stride_width,
 
   // Copy the output back to host memory
   checkCudaErrors(cudaMemcpy(host.output.data, output.data,
-                             output.width * output.height * sizeof(float),
+                             output.width * output.height * output.batch_size *
+                                 sizeof(float),
                              cudaMemcpyDeviceToHost));
 
   checkCudaErrors(cudaFree(input.data));

@@ -31,9 +31,11 @@ struct HostData {
   float time;
 
   HostData(const Matrix &input, const Matrix &kernel, int stride_width)
-      : input(input.width, input.height), kernel(kernel.width, kernel.height),
+      : input(input.width, input.height, input.batch_size),
+        kernel(kernel.width, kernel.height, kernel.batch_size),
         output((input.width - kernel.width) / stride_width + 1,
-               (input.height - kernel.height) / stride_width + 1),
+               (input.height - kernel.height) / stride_width + 1,
+               input.batch_size),
         time(0.0) {
     this->input.allocateMemory();
     this->kernel.allocateMemory();
