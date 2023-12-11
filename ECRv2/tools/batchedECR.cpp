@@ -6,6 +6,31 @@
 #include "ocpa.h"
 #include "util.h"
 
+llvm::cl::opt<calcMethod> CalcMethod(
+    llvm::cl::desc("Select the calculation method:"),
+    llvm::cl::values(
+        clEnumValN(calcMethod::ECR, "ecr", "ECR calculation for convolution"),
+        clEnumValN(calcMethod::PECR, "pecr",
+                   "PECR calculation for combined convolution and pooling"),
+        clEnumValN(calcMethod::cuDNN, "cudnn", "cuDNN based calculation")),
+    llvm::cl::Required);
+
+// llvm::cl::opt<floatType> FloatPrecision(
+//     llvm::cl::desc("Select the float precision for cuDNN:"),
+//     llvm::cl::values(clEnumValN(floatType::floatType, "float", "Float type"),
+//                      clEnumValN(floatType::halfType, "half", "Half type")),
+//     llvm::cl::Optional, llvm::cl::init(floatType::floatType));
+
+llvm::cl::opt<cudnnAlgo> cuDNNAlgo(
+    llvm::cl::desc("Select the cuDNN Algorithm:"),
+    llvm::cl::values(
+        clEnumValN(cudnnAlgo::GEMM, "gemm", "GEMM Algorithm"),
+        clEnumValN(cudnnAlgo::IMPLICIT_GEMM, "imp_gemm",
+                   "Implicit GEMM Algorithm"),
+        clEnumValN(cudnnAlgo::FFT_TILING, "fft", "FFT Tiling Algorithm"),
+        clEnumValN(cudnnAlgo::FAST, "fast", "Fastest Algorithm is found")),
+    llvm::cl::Optional, llvm::cl::init(cudnnAlgo::UNDEFINED));
+
 static llvm::cl::opt<std::string>
     FeaturePath("feature", llvm::cl::desc("Specify the feature file path"),
                 llvm::cl::value_desc("file"), llvm::cl::Required);
@@ -27,6 +52,11 @@ int main(int argc, char **argv) {
 
   llvm::cl::ParseCommandLineOptions(argc, argv, "Batched ECR");
 
+  if (CalcMethod == calcMethod::cuDNN && cuDNNAlgo == cudnnAlgo::UNDEFINED) {
+    std::cerr << "cuDNN Algorithm is not specified.\n";
+    return 1;
+  }
+
   checkPaths<std::ifstream>(FeaturePath);
   checkPaths<std::ifstream>(KernelPath);
 
@@ -42,7 +72,7 @@ int main(int argc, char **argv) {
   Matrix input(featureWidth, featureHeight, batch_size);
   Matrix kernel(kernelWidth, kernelHeight, batch_size);
 
-  int stride_width = 1;
+  constexpr int stride_width = 1;
 
   HostData host(input, kernel, stride_width);
 
@@ -65,9 +95,25 @@ int main(int argc, char **argv) {
               host.kernel.data + i * kernelWidth * kernelHeight);
   }
 
-  if (!runECR(host, stride_width, batch_size)) {
-    std::cerr << "Error: runSingleECR failed.\n";
-    return 1;
+  switch (CalcMethod) {
+  case calcMethod::ECR:
+    if (!runECR(host, stride_width, batch_size)) {
+      std::cerr << "Error: runECR failed.\n";
+      return 1;
+    }
+    break;
+  case calcMethod::PECR:
+    if (!runPECR(host, stride_width, batch_size)) {
+      std::cerr << "Error: runECR failed.\n";
+      return 1;
+    }
+    break;
+  case calcMethod::cuDNN:
+    if (!runCUDNN(host, stride_width, batch_size, cuDNNAlgo)) {
+      std::cerr << "Error: run CUDNN failed.\n";
+      return 1;
+    }
+    break;
   }
 
   OCPA_DEBUG(
