@@ -77,7 +77,7 @@ python3 conv_test.py --kernel ../../dataset/resnet/kernel/layer3.2.conv2.weight 
 
 By changing **resnet** to **vggdata** similar measurements can be obtained for vgg, **batch-size** should be set to actual batch size such as 32
 
-After executing and recording particular time execute the below shell script from command line to clean up previously recorded time measurement files, and you can execute a new time recording command again
+After executing and recording time files, execute the below shell script from command line to clean up previously recorded time measurement files, and you can start collecting new measurements again
 
 ```shell
 ./measurement_cleaner.sh
