@@ -36,9 +36,19 @@ then
         batchedECR_times="../times_resnet/batchedECR_times.txt"
     fi
 
-    if [ ! -f "../times_resnet/cuDNN_times.txt" ]
+    if [[ ! -f "../times_resnet/cuDNN_gemm_times.txt" && "$3" ==  "gemm" ]]
     then
-        cuDNN_times="../times_resnet/cuDNN_times.txt"
+        cuDNN_times="../times_resnet/cuDNN_gemm_times.txt"
+    fi
+
+    if [[ ! -f "../times_resnet/cuDNN_imp_gemm_times.txt" && "$3" == "imp_gemm" ]]
+    then
+        cuDNN_times="../times_resnet/cuDNN_imp_gemm_times.txt"
+    fi
+
+    if [[ ! -f "../times_resnet/cuDNN_fft_times.txt"  &&  "$3" == "fft" ]]
+    then
+        cuDNN_times="../times_resnet/cuDNN_fft_times.txt"
     fi
 
 elif [ "$1" == "vggdata" ]
@@ -57,12 +67,21 @@ then
          batchedECR_times="../times_vgg/batchedECR_times.txt"
     fi
 
-    if  [ ! -f "../times_vgg/cuDNN_times.txt" ]
-    then  
-        cuDNN_times="../times_vgg/cuDNN_times.txt"
+       if [[ ! -f "../times_vgg/cuDNN_gemm_times.txt" && "$3" ==  "gemm" ]]
+    then
+        cuDNN_times="../times_vgg/cuDNN_gemm_times.txt"
+    fi
+
+    if [[ ! -f "../times_vgg/cuDNN_imp_gemm_times.txt" && "$3" == "imp_gemm" ]]
+    then
+        cuDNN_times="../times_vgg/cuDNN_imp_gemm_times.txt"
+    fi
+
+    if [[ ! -f "../times_vgg/cuDNN_fft_times.txt"  &&  "$3" == "fft" ]]
+    then
+        cuDNN_times="../times_vgg/cuDNN_fft_times.txt"
     fi
 fi
-
 
 # declaring feature_array
 declare -a feature_array
@@ -155,7 +174,7 @@ do
         ./singleECR --$2 --kernel ../../dataset/$1/kernel/${kernel_array[$i]} --feature ../../dataset/$1/feature/${feature_array[$i]}  > $time_file    
      elif [ "$2" == "pecr" ]
      then
-        ./batchedECR  --kernel ../../dataset/$1/kernel/${kernel_array[$i]} --feature ../../dataset/$1/feature/${feature_array[$i]} --batch_size 1  > $time_file
+        ./batchedECR --$2  --kernel ../../dataset/$1/kernel/${kernel_array[$i]} --feature ../../dataset/$1/feature/${feature_array[$i]} --batch_size $3  > $time_file
      fi    
        
 
