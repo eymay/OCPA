@@ -57,3 +57,28 @@ For example,
 ```shell
 python3 conv_test.py --kernel ../../dataset/resnet/kernel/layer3.2.conv2.weight  --feature ../../dataset/resnet/feature/feature38 --test_output singleECR_result.txt
 ```
+
+### All possible time measurement generations
+```shell
+./time_recorder.sh resnet ecr
+```
+```shell
+./time_recorder.sh resnet pecr <batch-size>
+```
+```shell
+./time_recorder.sh resnet cudnn gemm
+```
+```shell
+./time_recorder.sh resnet cudnn imp_gemm
+```
+```shell
+./time_recorder.sh resnet cudnn fft
+```
+
+By changing **resnet** to **vggdata** similar measurements can be obtained for vgg, **batch-size** should be set to actual batch size such as 32
+
+After executing and recording particular time execute the below shell script from command line to clean up previously recorded time measurement files, and you can execute a new time recording command again
+
+```shell
+./measurement_cleaner.sh
+```
