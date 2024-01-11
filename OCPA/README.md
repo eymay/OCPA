@@ -35,27 +35,27 @@ cmake -G Ninja -S .. -B . \
 -DCMAKE_CUDA_COMPILER=clang++-16 \
 -DCMAKE_LINKER=lld
 ```
-# singleECR 
-singleECR driver allows us to run single convolution operations per feature and kernel. When the code is built its binary is under build directory. Time measurement is printed to console.
+# singleOCPA 
+singleOCPA driver allows us to run single convolution operations per feature and kernel. When the code is built its binary is under build directory. Time measurement is printed to console.
 
 ## Usage
 
 Feature and kernel paths can be provided via command line arguments. Optionally, output directory can be provided for the resulting convolution.
 
 ```shell
-./singleECR --kernel <path-to-kernel>  --feature <path-to-feature>
+./singleOCPA --kernel <path-to-kernel>  --feature <path-to-feature>
 ```
 
 For example,
 
 ```shell
-./singleECR --kernel ../../dataset/resnet/kernel/layer3.2.conv2.weight  --feature ../../dataset/resnet/feature/feature38 --output singleECR_result.txt
+./singleOCPA --kernel ../../dataset/resnet/kernel/layer3.2.conv2.weight  --feature ../../dataset/resnet/feature/feature38 --output singleOCPA_result.txt
 ```
 
 ## Testing
 
 ```shell
-python3 conv_test.py --kernel ../../dataset/resnet/kernel/layer3.2.conv2.weight  --feature ../../dataset/resnet/feature/feature38 --test_output singleECR_result.txt
+python3 conv_test.py --kernel ../../dataset/resnet/kernel/layer3.2.conv2.weight  --feature ../../dataset/resnet/feature/feature38 --test_output singleOCPA_result.txt
 ```
 
 ### All possible time measurement generations

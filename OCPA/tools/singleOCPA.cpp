@@ -46,7 +46,7 @@ static llvm::cl::opt<std::string>
 
 int main(int argc, char **argv) {
 
-  llvm::cl::ParseCommandLineOptions(argc, argv, "Single ECR");
+  llvm::cl::ParseCommandLineOptions(argc, argv, "Single OCPA");
 
   if (CalcMethod == calcMethod::cuDNN && cuDNNAlgo == cudnnAlgo::UNDEFINED) {
     std::cerr << "cuDNN Algorithm is not specified.\n";
@@ -88,7 +88,7 @@ int main(int argc, char **argv) {
       break;
     case calcMethod::PECR:
       if (!runPECR(host, stride_width, 1 /*batch size*/)) {
-        std::cerr << "Error: runECR failed.\n";
+        std::cerr << "Error: runPECR failed.\n";
         return 1;
       }
       break;

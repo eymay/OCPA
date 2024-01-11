@@ -45,12 +45,12 @@ static llvm::cl::opt<std::string>
                llvm::cl::init(""));
 
 static llvm::cl::opt<int>
-    batch_size("batch_size", llvm::cl::desc("Specify the output file name"),
+    batch_size("batch_size", llvm::cl::desc("Specify the batch size"),
                llvm::cl::value_desc("Integer"), llvm::cl::Required);
 
 int main(int argc, char **argv) {
 
-  llvm::cl::ParseCommandLineOptions(argc, argv, "Batched ECR");
+  llvm::cl::ParseCommandLineOptions(argc, argv, "Batched OCPA");
 
   if (CalcMethod == calcMethod::cuDNN && cuDNNAlgo == cudnnAlgo::UNDEFINED) {
     std::cerr << "cuDNN Algorithm is not specified.\n";
@@ -104,7 +104,7 @@ int main(int argc, char **argv) {
     break;
   case calcMethod::PECR:
     if (!runPECR(host, stride_width, batch_size)) {
-      std::cerr << "Error: runECR failed.\n";
+      std::cerr << "Error: runPECR failed.\n";
       return 1;
     }
     break;
